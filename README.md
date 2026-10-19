@@ -17,7 +17,7 @@ cd C:\laragon\www\
 2. clone project dari git di bawah:
 ```bash
 git clone https://github.com/FaishalDanni-24/OldiGoldi.git
-cd C:\laragon\www\cineflick
+cd C:\laragon\www\OldiGoldi
 ```
 3. install semua dependensi yang diperlukan:
 ```bash
@@ -26,9 +26,9 @@ npm install
 copy .env.example .env
 php artisan key:generate
 ```
-4. Buat data (php artisan serve bisa diskip kalau website udah bisa diakses dari laragon)
+4. Buat data (php artisan serve bisa diskip kalau website sudah bisa diakses dari laragon)
 ```bash
-php artisan migrate # Jika ditanya seperti ini, Database cineflick_db does not exist. Do you want to create it? pilih yes
+php artisan migrate # Jika ditanya seperti ini, Database oldigoldi does not exist. Do you want to create it? pilih yes
 php artisan db:seed
 npm run dev # Menjalankan vite untuk frontend (Jika lagi developing)
 npm run build # Membuat folder build di public (Untuk Hosting)
@@ -42,7 +42,7 @@ APP_URL=https://oldigoldi.test # Sesuaikan dengan URL website
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1 # Sesuaikan dengan alamat host database
 DB_PORT=3306 # Sesuaikan port database
-DB_DATABASE=cineflick_db
+DB_DATABASE=oldigoldi
 DB_USERNAME=root # Sesuaikan dengan username ke database
 DB_PASSWORD= # Jika database mysql ada password, masukkan passwordnya
 
@@ -64,3 +64,9 @@ php artisan optimize:clear
 ```bash
 php artisan storage:link
 ```
+
+## Guideline Kontribusi
+1. Disarankan menggunakan Github Desktop untuk mempermudah proses pembuatan dan manajemen branch kerja.
+2. Nama branch harus relevan dengan fitur yang dikerjakan hindari, misalnya mengerjakan branch untuk database. Maka namanya feature_db atau dev_db.
+3. Hindari pengubahan bagian yang dikerjakan branch lain.
+4. Pastikan fitur sudah dapat bekerja sebelum push dan membuat Pull Request (PR).
