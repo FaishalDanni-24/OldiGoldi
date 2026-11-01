@@ -12,8 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('order_status_histories', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+            $table->id('history_id');
+            $table->foreignId('order_id');
+            $table->foreignId('user_id')->nullable();
+            $table->string('old_status', 30)->nullable();
+            $table->string('new_status', 30);
+            $table->text('note')->nullable();
+            $table->timestamp('changed_at')->useCurrent();
         });
     }
 

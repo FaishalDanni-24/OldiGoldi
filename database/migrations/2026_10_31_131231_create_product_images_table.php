@@ -12,8 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('product_images', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+            $table->id('image_id');
+            $table->foreignId('product_id');
+            $table->string('image_url', 1000);
+            $table->boolean('is_primary')->default(0);
+            $table->unsignedInteger('sort_order')->default(0);
         });
     }
 

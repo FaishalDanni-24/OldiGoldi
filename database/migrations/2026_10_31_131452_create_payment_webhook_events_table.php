@@ -12,8 +12,17 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('payment_webhook_events', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+            $table->id('webhook_id');
+            $table->string('provider', 50);
+            $table->string('provider_event_id', 180);
+            $table->foreignId('payment_id')->nullable();
+            $table->string('event_type', 100);
+            $table->json('payload');
+            $table->enum('processing_status', array('received', 'processed', 'failed'))->default('received');
+            $table->timestamp('received_at')->useCurrent();
+            $table->timestamp('processed_at')->nullable();
+            $table->text('error_message')->nullable();
+            $table->unique(array('provider', 'provider_event_id'));
         });
     }
 
