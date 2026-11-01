@@ -12,7 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('carts', function (Blueprint $table) {
-            $table->id();
+            $table->id('cart_id');
+            $table->foreignId('user_id');
+            $table->enum('cart_status', array('active', 'converted', 'abandoned'))->default('active');
             $table->timestamps();
         });
     }

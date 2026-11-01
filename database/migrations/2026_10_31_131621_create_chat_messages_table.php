@@ -12,8 +12,15 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('chat_messages', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+            $table->id('message_id');
+            $table->unsignedBigInteger('sender_id');
+            $table->foreignId('conversation_id');
+            $table->foreign('sender_id')->references('user_id')->on('users');
+            $table->enum('message_type', array('text', 'image', 'file', 'system'))->default('text');
+            $table->text('message_text')->nullable();
+            $table->string('attachment_url', 1000)->nullable();
+            $table->boolean('is_read')->default(0);
+            $table->timestamp('sent_at')->useCurrent();
         });
     }
 
