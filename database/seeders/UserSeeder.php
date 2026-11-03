@@ -16,7 +16,7 @@ class UserSeeder extends Seeder
     public function run(): void
     {
         DB::table('users')->insert([
-            'role_id' => 0,
+            'role_id' => 1,
             'name' => 'Admin',
             'email' => 'admin1'.'@example.com',
             'email_verified_at' => date('Y-m-d H:i:s', time()),
@@ -26,7 +26,7 @@ class UserSeeder extends Seeder
             'remember_token' => Str::random(10)
             ]);
         DB::table('users')->insert([
-            'role_id' => 1,
+            'role_id' => 2,
             'name' => 'User',
             'email' => 'user1'.'@example.com',
             'password' => Hash::make('password'),
