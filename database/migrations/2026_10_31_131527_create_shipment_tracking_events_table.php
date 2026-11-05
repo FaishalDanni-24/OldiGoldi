@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('shipment_tracking_events', function (Blueprint $table) {
             $table->id('tracking_event_id');
-            $table->foreignId('shipment_id');
+            $table->unsignedBigInteger('shipment_id');
+            $table->foreign('shipment_id')->references('shipment_id')->on('shipments');
             $table->string('external_event_id', 150)->nullable();
             $table->string('event_code', 100)->nullable();
             $table->string('event_status', 50);

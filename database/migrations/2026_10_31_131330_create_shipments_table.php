@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('shipments', function (Blueprint $table) {
             $table->id('shipment_id');
-            $table->foreignId('order_id');
+            $table->unsignedBigInteger('order_id');
+            $table->foreign('order_id')->references('order_id')->on('orders');
             $table->string('tracking_provider', 60);
             $table->string('provider_shipment_id', 150)->nullable();
             $table->string('courier_code', 60)->nullable();

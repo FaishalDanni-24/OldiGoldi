@@ -14,7 +14,8 @@ return new class extends Migration
         Schema::create('chat_messages', function (Blueprint $table) {
             $table->id('message_id');
             $table->unsignedBigInteger('sender_id');
-            $table->foreignId('conversation_id');
+            $table->unsignedBigInteger('conversation_id');
+            $table->foreign('conversation_id')->references('conversation_id')->on('conversations');
             $table->foreign('sender_id')->references('user_id')->on('users');
             $table->enum('message_type', array('text', 'image', 'file', 'system'))->default('text');
             $table->text('message_text')->nullable();

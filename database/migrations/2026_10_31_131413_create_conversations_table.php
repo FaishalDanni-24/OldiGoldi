@@ -15,10 +15,12 @@ return new class extends Migration
             $table->id('conversation_id');
             $table->unsignedBigInteger('customer_id');
             $table->unsignedBigInteger('admin_id');
+            $table->unsignedBigInteger('order_id')->nullable();
+            $table->unsignedBigInteger('product_id')->nullable();
             $table->foreign('customer_id')->references('user_id')->on('users'); // user_id dengan role customer
             $table->foreign('admin_id')->references('user_id')->on('users'); // user_id dengan role customer
-            $table->foreignId('order_id')->nullable(); // untuk chat berkaitan langsung dengan pesanan
-            $table->foreignId('product_id')->nullable(); //untuk chat berkaitan dengan produk
+            $table->foreign('order_id')->references('order_id')->on('orders'); // untuk chat berkaitan langsung dengan pesanan
+            $table->foreign('product_id')->references('product_id')->on('products'); //untuk chat berkaitan dengan produk
             $table->enum('conversation_status', array('open', 'closed'))->default('open');
             $table->timestamps();
         });

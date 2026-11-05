@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('product_images', function (Blueprint $table) {
             $table->id('image_id');
-            $table->foreignId('product_id');
+            $table->unsignedBigInteger('product_id');
+            $table->foreign('product_id')->references('product_id')->on('products');
             $table->string('image_url', 1000);
             $table->boolean('is_primary')->default(0);
             $table->unsignedInteger('sort_order')->default(0);

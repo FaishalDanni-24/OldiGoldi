@@ -14,8 +14,10 @@ return new class extends Migration
         Schema::create('orders', function (Blueprint $table) {
             $table->id('order_id');
             $table->unsignedInteger('order_number')->unique();
-            $table->foreignId('customer_id');
-            $table->foreignId('address_id')->nullable();
+            $table->unsignedBigInteger('customer_id');
+            $table->unsignedBigInteger('address_id')->nullable();
+            $table->foreign('customer_id')->references('user_id')->on('users');
+            $table->foreign('address_id')->references('address_id')->on('addresses');
             $table->enum('order_status', array('pending_payment', 'paid', 'processing', 'shipped', 'delivered', 'completed', 'cancelled', 'refunded'))->default('pending_payment');
             $table->decimal('subtotal', 12, 2); // Cek apakah >= 0
             $table->decimal('shipping_cost', 12, 2)->default(0);
