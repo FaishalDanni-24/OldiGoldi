@@ -2,10 +2,11 @@
 
 namespace App\Models\Orders;
 
+use App\Models\Users\User;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Fillable([
     'order_id',
@@ -15,9 +16,24 @@ use Illuminate\Database\Eloquent\Model;
     'note',
     'changed_at'
 ])]
-#[Table(key: 'history_id', timestamps: false)]
 class OrderStatusHistory extends Model
 {
+    protected $table = 'order_status_histories';
+
+    protected $primaryKey = 'history_id';
+
+    public $timestamps = false;
+
     /** @use HasFactory<\Database\Factories\OrderStatusHistoryFactory> */
     use HasFactory;
+
+    public function order(): BelongsTo
+    {
+        return $this->belongsTo(Order::class, 'order_id', 'order_id');
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id', 'user_id');
+    }
 }

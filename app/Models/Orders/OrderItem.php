@@ -2,10 +2,11 @@
 
 namespace App\Models\Orders;
 
+use App\Models\Products\Product;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Fillable([
     'order_id',
@@ -16,9 +17,24 @@ use Illuminate\Database\Eloquent\Model;
     'quantity',
     'line_total'
 ])]
-#[Table(key: 'order_item_id', timestamps:false)]
 class OrderItem extends Model
 {
+    protected $table = 'order_items';
+
+    protected $primaryKey = 'order_item_id';
+
+    public $timestamps = false;
+
     /** @use HasFactory<\Database\Factories\OrderItemFactory> */
     use HasFactory;
+
+    public function order(): BelongsTo
+    {
+        return $this->belongsTo(Order::class, 'order_id', 'order_id');
+    }
+
+    public function product(): BelongsTo
+    {
+        return $this->belongsTo(Product::class, 'product_id', 'product_id');
+    }
 }
