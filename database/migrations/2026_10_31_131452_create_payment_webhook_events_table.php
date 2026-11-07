@@ -15,7 +15,8 @@ return new class extends Migration
             $table->id('webhook_id');
             $table->string('provider', 50);
             $table->string('provider_event_id', 180);
-            $table->foreignId('payment_id')->nullable();
+            $table->unsignedBigInteger('payment_id')->nullable();
+            $table->foreign('payment_id')->references('payment_id')->on('payments');
             $table->string('event_type', 100);
             $table->json('payload');
             $table->enum('processing_status', array('received', 'processed', 'failed'))->default('received');

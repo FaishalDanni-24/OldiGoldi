@@ -2,10 +2,13 @@
 
 namespace App\Models\Users;
 
+use App\Models\Orders\Order;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 #[Fillable([
     'user_id',
@@ -19,9 +22,22 @@ use Illuminate\Database\Eloquent\Model;
     'postal_code',
     'is_default'
 ])]
-#[Table(key: 'address_id')]
 class Address extends Model
 {
+    protected $table = 'addresses';
+
+    protected $primaryKey = 'address_id';
+
     /** @use HasFactory<\Database\Factories\AddressFactory> */
-    use HasFactory;
+    use HasFactory, SoftDeletes;
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id', 'user_id');
+    }
+
+    public function orders(): HasMany
+    {
+        return $this->hasMany(Order::class, 'address_id', 'address_id');
+    }
 }

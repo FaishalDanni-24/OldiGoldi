@@ -2,10 +2,12 @@
 
 namespace App\Models\Payments;
 
+use App\Models\Orders\Order;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
     'order_id',
@@ -19,9 +21,22 @@ use Illuminate\Database\Eloquent\Model;
     'expires_at',
     'paid_at'
 ])]
-#[Table(key: 'payment_id')]
 class Payment extends Model
 {
+    protected $table = 'payments';
+
+    protected $primaryKey = 'payment_id';
+
     /** @use HasFactory<\Database\Factories\PaymentFactory> */
     use HasFactory;
+
+    public function order(): BelongsTo
+    {
+        return $this->belongsTo(Order::class, 'order_id', 'order_id');
+    }
+
+    public function webhookEvents(): HasMany
+    {
+        return $this->hasMany(PaymentWebhookEvent::class, 'payment_id', 'payment_id');
+    }
 }

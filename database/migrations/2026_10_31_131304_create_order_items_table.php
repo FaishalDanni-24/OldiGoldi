@@ -13,8 +13,10 @@ return new class extends Migration
     {
         Schema::create('order_items', function (Blueprint $table) {
             $table->id('order_item_id');
-            $table->foreignId('order_id');
-            $table->foreignId('product_id')->nullable();
+            $table->unsignedBigInteger('order_id');
+            $table->unsignedBigInteger('product_id')->nullable();
+            $table->foreign('order_id')->references('order_id')->on('orders');
+            $table->foreign('product_id')->references('product_id')->on('products');
             $table->string('product_name_snapshot', 180);
             $table->string('sku_snapshot', 60)->nullable();
             $table->decimal('unit_price', 12, 2); # Cek apakah >= 0

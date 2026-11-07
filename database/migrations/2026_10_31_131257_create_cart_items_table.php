@@ -13,8 +13,10 @@ return new class extends Migration
     {
         Schema::create('cart_items', function (Blueprint $table) {
             $table->id('cart_item_id');
-            $table->foreignId('cart_id');
-            $table->foreignId('product_id');
+            $table->unsignedBigInteger('cart_id');
+            $table->unsignedBigInteger('product_id');
+            $table->foreign('cart_id')->references('cart_id')->on('carts');
+            $table->foreign('product_id')->references('product_id')->on('products');
             $table->unsignedInteger('quantity')->default(1); // Cek apakah > 0
             $table->timestamps();
             $table->unique(array('cart_id', 'product_id'));

@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('carts', function (Blueprint $table) {
             $table->id('cart_id');
-            $table->foreignId('user_id');
+            $table->unsignedBigInteger('user_id');
+            $table->foreign('user_id')->references('user_id')->on('users');
             $table->enum('cart_status', array('active', 'converted', 'abandoned'))->default('active');
             $table->timestamps();
         });

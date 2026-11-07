@@ -13,8 +13,10 @@ return new class extends Migration
     {
         Schema::create('order_status_histories', function (Blueprint $table) {
             $table->id('history_id');
-            $table->foreignId('order_id');
-            $table->foreignId('user_id')->nullable();
+            $table->unsignedBigInteger('order_id');
+            $table->unsignedBigInteger('user_id')->nullable();
+            $table->foreign('order_id')->references('order_id')->on('orders');
+            $table->foreign('user_id')->references('user_id')->on('users');
             $table->string('old_status', 30)->nullable();
             $table->string('new_status', 30);
             $table->text('note')->nullable();

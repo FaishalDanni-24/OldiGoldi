@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('payments', function (Blueprint $table) {
             $table->id('payment_id');
-            $table->foreignId('order_id');
+            $table->unsignedBigInteger('order_id');
+            $table->foreign('order_id')->references('order_id')->on('orders');
             $table->string('provider', 50);  
             $table->string('provider_order_id', 150)->nullable();  
             $table->string('provider_transaction_id', 150)->nullable();  
