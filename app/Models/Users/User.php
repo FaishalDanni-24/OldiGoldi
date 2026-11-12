@@ -9,7 +9,7 @@ use App\Models\Chats\Conversation;
 use App\Models\Orders\Order;
 use App\Models\Orders\OrderStatusHistory;
 use App\Models\Products\Product;
-use Database\Factories\UserFactory;
+use Database\Factories\Users\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;

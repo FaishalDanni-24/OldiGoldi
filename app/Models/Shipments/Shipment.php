@@ -38,7 +38,7 @@ class Shipment extends Model
 
     protected $primaryKey = 'shipment_id';
 
-    /** @use HasFactory<\Database\Factories\ShipmentFactory> */
+    /** @use HasFactory<\Database\Factories\Shipments\ShipmentFactory> */
     use HasFactory;
 
     protected function casts(): array

@@ -30,7 +30,7 @@ class PaymentWebhookEvent extends Model
 
     public $timestamps = false;
 
-    /** @use HasFactory<\Database\Factories\PaymentWebhookEventFactory> */
+    /** @use HasFactory<\Database\Factories\Payments\PaymentWebhookEventFactory> */
     use HasFactory;
 
     protected function casts(): array

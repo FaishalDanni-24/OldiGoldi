@@ -30,7 +30,7 @@ class ChatMessage extends Model
 
     public $timestamps = false;
 
-    /** @use HasFactory<\Database\Factories\ChatMessageFactory> */
+    /** @use HasFactory<\Database\Factories\Chats\ChatMessageFactory> */
     use HasFactory;
 
     protected function casts(): array

@@ -28,7 +28,7 @@ class Address extends Model
 
     protected $primaryKey = 'address_id';
 
-    /** @use HasFactory<\Database\Factories\AddressFactory> */
+    /** @use HasFactory<\Database\Factories\Users\AddressFactory> */
     use HasFactory, SoftDeletes;
 
     protected function casts(): array

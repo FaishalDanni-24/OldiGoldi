@@ -20,7 +20,7 @@ class Category extends Model
 
     protected $primaryKey = 'category_id';
 
-    /** @use HasFactory<\Database\Factories\CategoryFactory> */
+    /** @use HasFactory<\Database\Factories\Products\CategoryFactory> */
     use HasFactory, SoftDeletes;
 
     protected function casts(): array

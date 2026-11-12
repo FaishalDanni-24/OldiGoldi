@@ -21,7 +21,7 @@ class ProductImage extends Model
 
     public $timestamps = false;
 
-    /** @use HasFactory<\Database\Factories\ProductImageFactory> */
+    /** @use HasFactory<\Database\Factories\Products\ProductImageFactory> */
     use HasFactory;
 
     protected function casts(): array

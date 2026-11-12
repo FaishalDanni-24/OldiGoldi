@@ -24,7 +24,7 @@ class Cart extends Model
 
     protected $primaryKey = 'cart_id';
 
-    /** @use HasFactory<\Database\Factories\CartFactory> */
+    /** @use HasFactory<\Database\Factories\Carts\CartFactory> */
     use HasFactory, SoftDeletes;
 
     protected function casts(): array
