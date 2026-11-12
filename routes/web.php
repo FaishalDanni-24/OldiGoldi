@@ -1,7 +1,14 @@
 <?php
-
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('register');
+});
+
+Route::get('/login', function () {
+    return view('login');
+});
+
+Route::get('/explore', function () {
+    return view('explore');
 });
