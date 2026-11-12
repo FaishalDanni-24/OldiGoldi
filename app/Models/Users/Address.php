@@ -31,6 +31,14 @@ class Address extends Model
     /** @use HasFactory<\Database\Factories\AddressFactory> */
     use HasFactory, SoftDeletes;
 
+    protected function casts(): array
+    {
+        return [
+            'user_id' => 'integer',
+            'is_default' => 'boolean',
+        ];
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id', 'user_id');
@@ -39,5 +47,10 @@ class Address extends Model
     public function orders(): HasMany
     {
         return $this->hasMany(Order::class, 'address_id', 'address_id');
+    }
+
+    public function scopeDefault($query)
+    {
+        return $query->where('is_default', true);
     }
 }

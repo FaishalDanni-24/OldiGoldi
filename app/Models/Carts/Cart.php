@@ -16,12 +16,23 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 ])]
 class Cart extends Model
 {
+    public const STATUS_ACTIVE = 'active';
+    public const STATUS_CONVERTED = 'converted';
+    public const STATUS_ABANDONED = 'abandoned';
+
     protected $table = 'carts';
 
     protected $primaryKey = 'cart_id';
 
     /** @use HasFactory<\Database\Factories\CartFactory> */
     use HasFactory, SoftDeletes;
+
+    protected function casts(): array
+    {
+        return [
+            'user_id' => 'integer',
+        ];
+    }
 
     public function user(): BelongsTo
     {
@@ -31,5 +42,10 @@ class Cart extends Model
     public function items(): HasMany
     {
         return $this->hasMany(CartItem::class, 'cart_id', 'cart_id');
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('cart_status', self::STATUS_ACTIVE);
     }
 }

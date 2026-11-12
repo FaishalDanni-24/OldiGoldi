@@ -27,6 +27,15 @@ class OrderStatusHistory extends Model
     /** @use HasFactory<\Database\Factories\OrderStatusHistoryFactory> */
     use HasFactory;
 
+    protected function casts(): array
+    {
+        return [
+            'order_id' => 'integer',
+            'user_id' => 'integer',
+            'changed_at' => 'datetime',
+        ];
+    }
+
     public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class, 'order_id', 'order_id');

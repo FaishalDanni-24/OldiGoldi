@@ -22,6 +22,15 @@ class CartItem extends Model
     /** @use HasFactory<\Database\Factories\CartItemFactory> */
     use HasFactory;
 
+    protected function casts(): array
+    {
+        return [
+            'cart_id' => 'integer',
+            'product_id' => 'integer',
+            'quantity' => 'integer',
+        ];
+    }
+
     public function cart(): BelongsTo
     {
         return $this->belongsTo(Cart::class, 'cart_id', 'cart_id');

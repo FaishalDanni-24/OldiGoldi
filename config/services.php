@@ -35,4 +35,24 @@ return [
         ],
     ],
 
+    'payment_gateway' => [
+        'url' => env('PAYMENT_GATEWAY_URL'),
+        'key' => env('PAYMENT_GATEWAY_KEY'),
+        'secret' => env('PAYMENT_GATEWAY_SECRET'),
+        'webhook_secret' => env('PAYMENT_WEBHOOK_SECRET'),
+        'callback_url' => env('PAYMENT_CALLBACK_URL'),
+        'return_url' => env('PAYMENT_RETURN_URL'),
+        'currency' => env('PAYMENT_CURRENCY', 'IDR'),
+        'expiry_minutes' => env('PAYMENT_EXPIRY_MINUTES', 60),
+        'sandbox' => env('PAYMENT_SANDBOX', true),
+    ],
+
+    'tracking' => [
+        'url' => env('TRACKING_API_URL'),
+        'key' => env('TRACKING_API_KEY'),
+        'secret' => env('TRACKING_API_SECRET'),
+        'webhook_secret' => env('TRACKING_WEBHOOK_SECRET'),
+        'sandbox' => env('TRACKING_SANDBOX', true),
+    ],
+
 ];
