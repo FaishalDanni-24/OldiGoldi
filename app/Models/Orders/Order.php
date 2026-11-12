@@ -48,7 +48,7 @@ class Order extends Model
 
     protected $primaryKey = 'order_id';
 
-    /** @use HasFactory<\Database\Factories\OrderFactory> */
+    /** @use HasFactory<\Database\Factories\Orders\OrderFactory> */
     use HasFactory, SoftDeletes;
 
     protected function casts(): array

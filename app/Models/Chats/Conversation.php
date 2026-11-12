@@ -27,7 +27,7 @@ class Conversation extends Model
 
     protected $primaryKey = 'conversation_id';
 
-    /** @use HasFactory<\Database\Factories\ConversationFactory> */
+    /** @use HasFactory<\Database\Factories\Chats\ConversationFactory> */
     use HasFactory;
 
     protected function casts(): array

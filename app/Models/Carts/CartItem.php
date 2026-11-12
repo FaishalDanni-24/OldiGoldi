@@ -19,7 +19,7 @@ class CartItem extends Model
 
     protected $primaryKey = 'cart_item_id';
 
-    /** @use HasFactory<\Database\Factories\CartItemFactory> */
+    /** @use HasFactory<\Database\Factories\Carts\CartItemFactory> */
     use HasFactory;
 
     protected function casts(): array

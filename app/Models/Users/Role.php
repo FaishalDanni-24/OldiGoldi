@@ -16,7 +16,7 @@ class Role extends Model
 
     public $timestamps = false;
 
-    /** @use HasFactory<\Database\Factories\RoleFactory> */
+    /** @use HasFactory<\Database\Factories\Users\RoleFactory> */
     use HasFactory;
 
     public function users(): HasMany

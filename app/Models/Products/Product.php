@@ -44,7 +44,7 @@ class Product extends Model
 
     protected $primaryKey = 'product_id';
 
-    /** @use HasFactory<\Database\Factories\ProductFactory> */
+    /** @use HasFactory<\Database\Factories\Products\ProductFactory> */
     use HasFactory, SoftDeletes;
 
     protected function casts(): array

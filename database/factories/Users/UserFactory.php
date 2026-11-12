@@ -1,6 +1,6 @@
 <?php
 
-namespace Database\Factories;
+namespace Database\Factories\Users;
 
 use App\Models\Users\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -31,10 +31,13 @@ class UserFactory extends Factory
     public function definition(): array
     {
         return [
+            'role_id' => \App\Models\Users\Role::factory(),
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
+            'phone_number' => fake()->optional()->phoneNumber(),
+            'account_status' => fake()->randomElement(['active', 'pending_verification', 'blocked']),
             'remember_token' => Str::random(10),
         ];
     }

@@ -25,7 +25,7 @@ class ShipmentTrackingEvent extends Model
 
     public $timestamps = false;
 
-    /** @use HasFactory<\Database\Factories\ShipmentTrackingEventFactory> */
+    /** @use HasFactory<\Database\Factories\Shipments\ShipmentTrackingEventFactory> */
     use HasFactory;
 
     protected function casts(): array

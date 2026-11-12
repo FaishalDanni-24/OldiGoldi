@@ -24,7 +24,7 @@ class OrderStatusHistory extends Model
 
     public $timestamps = false;
 
-    /** @use HasFactory<\Database\Factories\OrderStatusHistoryFactory> */
+    /** @use HasFactory<\Database\Factories\Orders\OrderStatusHistoryFactory> */
     use HasFactory;
 
     protected function casts(): array

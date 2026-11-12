@@ -25,7 +25,7 @@ class OrderItem extends Model
 
     public $timestamps = false;
 
-    /** @use HasFactory<\Database\Factories\OrderItemFactory> */
+    /** @use HasFactory<\Database\Factories\Orders\OrderItemFactory> */
     use HasFactory;
 
     protected static function booted(): void

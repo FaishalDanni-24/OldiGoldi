@@ -34,7 +34,7 @@ class Payment extends Model
 
     protected $primaryKey = 'payment_id';
 
-    /** @use HasFactory<\Database\Factories\PaymentFactory> */
+    /** @use HasFactory<\Database\Factories\Payments\PaymentFactory> */
     use HasFactory;
 
     protected function casts(): array
