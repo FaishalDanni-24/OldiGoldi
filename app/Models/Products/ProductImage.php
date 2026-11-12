@@ -24,8 +24,22 @@ class ProductImage extends Model
     /** @use HasFactory<\Database\Factories\ProductImageFactory> */
     use HasFactory;
 
+    protected function casts(): array
+    {
+        return [
+            'product_id' => 'integer',
+            'is_primary' => 'boolean',
+            'sort_order' => 'integer',
+        ];
+    }
+
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class, 'product_id', 'product_id');
+    }
+
+    public function scopePrimary($query)
+    {
+        return $query->where('is_primary', true);
     }
 }

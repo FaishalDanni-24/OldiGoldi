@@ -15,8 +15,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'description',
     'location',
     'happened_at',
-    'raw_payload',
-    'created_at'
+    'raw_payload'
 ])]
 class ShipmentTrackingEvent extends Model
 {
@@ -29,8 +28,22 @@ class ShipmentTrackingEvent extends Model
     /** @use HasFactory<\Database\Factories\ShipmentTrackingEventFactory> */
     use HasFactory;
 
+    protected function casts(): array
+    {
+        return [
+            'shipment_id' => 'integer',
+            'raw_payload' => 'array',
+            'happened_at' => 'datetime',
+        ];
+    }
+
     public function shipment(): BelongsTo
     {
         return $this->belongsTo(Shipment::class, 'shipment_id', 'shipment_id');
+    }
+
+    public function scopeLatestFirst($query)
+    {
+        return $query->orderByDesc('happened_at');
     }
 }

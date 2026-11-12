@@ -28,6 +28,26 @@ class OrderItem extends Model
     /** @use HasFactory<\Database\Factories\OrderItemFactory> */
     use HasFactory;
 
+    protected static function booted(): void
+    {
+        static::saving(function (self $item) {
+            if ($item->unit_price !== null && $item->quantity !== null) {
+                $item->line_total = (float) $item->unit_price * (int) $item->quantity;
+            }
+        });
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'order_id' => 'integer',
+            'product_id' => 'integer',
+            'unit_price' => 'decimal:2',
+            'quantity' => 'integer',
+            'line_total' => 'decimal:2',
+        ];
+    }
+
     public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class, 'order_id', 'order_id');

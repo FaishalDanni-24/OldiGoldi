@@ -19,6 +19,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 ])]
 class ChatMessage extends Model
 {
+    public const TYPE_TEXT = 'text';
+    public const TYPE_IMAGE = 'image';
+    public const TYPE_FILE = 'file';
+    public const TYPE_SYSTEM = 'system';
+
     protected $table = 'chat_messages';
 
     protected $primaryKey = 'message_id';
@@ -28,6 +33,16 @@ class ChatMessage extends Model
     /** @use HasFactory<\Database\Factories\ChatMessageFactory> */
     use HasFactory;
 
+    protected function casts(): array
+    {
+        return [
+            'sender_id' => 'integer',
+            'conversation_id' => 'integer',
+            'is_read' => 'boolean',
+            'sent_at' => 'datetime',
+        ];
+    }
+
     public function conversation(): BelongsTo
     {
         return $this->belongsTo(Conversation::class, 'conversation_id', 'conversation_id');
@@ -36,5 +51,10 @@ class ChatMessage extends Model
     public function sender(): BelongsTo
     {
         return $this->belongsTo(User::class, 'sender_id', 'user_id');
+    }
+
+    public function scopeUnread($query)
+    {
+        return $query->where('is_read', false);
     }
 }

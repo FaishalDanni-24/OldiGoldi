@@ -20,12 +20,25 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 ])]
 class Conversation extends Model
 {
+    public const STATUS_OPEN = 'open';
+    public const STATUS_CLOSED = 'closed';
+
     protected $table = 'conversations';
 
     protected $primaryKey = 'conversation_id';
 
     /** @use HasFactory<\Database\Factories\ConversationFactory> */
     use HasFactory;
+
+    protected function casts(): array
+    {
+        return [
+            'customer_id' => 'integer',
+            'admin_id' => 'integer',
+            'order_id' => 'integer',
+            'product_id' => 'integer',
+        ];
+    }
 
     public function customer(): BelongsTo
     {
@@ -50,5 +63,15 @@ class Conversation extends Model
     public function messages(): HasMany
     {
         return $this->hasMany(ChatMessage::class, 'conversation_id', 'conversation_id');
+    }
+
+    public function scopeOpen($query)
+    {
+        return $query->where('conversation_status', self::STATUS_OPEN);
+    }
+
+    public function scopeClosed($query)
+    {
+        return $query->where('conversation_status', self::STATUS_CLOSED);
     }
 }

@@ -23,8 +23,20 @@ class Category extends Model
     /** @use HasFactory<\Database\Factories\CategoryFactory> */
     use HasFactory, SoftDeletes;
 
+    protected function casts(): array
+    {
+        return [
+            'is_active' => 'boolean',
+        ];
+    }
+
     public function products(): HasMany
     {
         return $this->hasMany(Product::class, 'category_id', 'category_id');
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
     }
 }

@@ -32,6 +32,10 @@ use Laravel\Sanctum\HasApiTokens;
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
+    public const STATUS_ACTIVE = 'active';
+    public const STATUS_PENDING_VERIFICATION = 'pending_verification';
+    public const STATUS_BLOCKED = 'blocked';
+
     protected $table = 'users';
 
     protected $primaryKey = 'user_id';
@@ -49,6 +53,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'role_id' => 'integer',
         ];
     }
 
@@ -95,5 +100,15 @@ class User extends Authenticatable
     public function orderStatusHistories(): HasMany
     {
         return $this->hasMany(OrderStatusHistory::class, 'user_id', 'user_id');
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('account_status', self::STATUS_ACTIVE);
+    }
+
+    public function scopeBlocked($query)
+    {
+        return $query->where('account_status', self::STATUS_BLOCKED);
     }
 }

@@ -2,7 +2,12 @@
 
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Schedule;
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
+
+// Sandbox sync jobs
+Schedule::command('shipments:sync-tracking')->everyFiveMinutes();
+Schedule::command('payments:expire-pending')->daily();

@@ -30,17 +30,38 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'shipping_district',
     'shipping_city',
     'shipping_province',
-    'shopping_postal_code',
+    'shipping_postal_code',
     'customer_note'
 ])]
 class Order extends Model
 {
+    public const STATUS_PENDING_PAYMENT = 'pending_payment';
+    public const STATUS_PAID = 'paid';
+    public const STATUS_PROCESSING = 'processing';
+    public const STATUS_SHIPPED = 'shipped';
+    public const STATUS_DELIVERED = 'delivered';
+    public const STATUS_COMPLETED = 'completed';
+    public const STATUS_CANCELLED = 'cancelled';
+    public const STATUS_REFUNDED = 'refunded';
+
     protected $table = 'orders';
 
     protected $primaryKey = 'order_id';
 
     /** @use HasFactory<\Database\Factories\OrderFactory> */
     use HasFactory, SoftDeletes;
+
+    protected function casts(): array
+    {
+        return [
+            'customer_id' => 'integer',
+            'address_id' => 'integer',
+            'subtotal' => 'decimal:2',
+            'shipping_cost' => 'decimal:2',
+            'discount_amount' => 'decimal:2',
+            'total_amount' => 'decimal:2',
+        ];
+    }
 
     public function customer(): BelongsTo
     {
@@ -80,5 +101,20 @@ class Order extends Model
     public function conversations(): HasMany
     {
         return $this->hasMany(Conversation::class, 'order_id', 'order_id');
+    }
+
+    public function scopeForCustomer($query, int $customerId)
+    {
+        return $query->where('customer_id', $customerId);
+    }
+
+    public function scopeByStatus($query, string $status)
+    {
+        return $query->where('order_status', $status);
+    }
+
+    public function scopePendingPayment($query)
+    {
+        return $query->where('order_status', self::STATUS_PENDING_PAYMENT);
     }
 }
