@@ -31,7 +31,9 @@ return new class extends Migration
                 DB::statement('ALTER TABLE order_items ADD COLUMN line_total DECIMAL(12,2) NOT NULL DEFAULT 0');
             }
         }
-        DB::table('order_items')->update(['line_total' => DB::raw('unit_price * quantity')]);
+        if ($mysql) {
+            DB::table('order_items')->update(['line_total' => DB::raw('unit_price * quantity')]);
+        }
 
         // 4. FK onDelete rules: drop & re-add foreign keys with explicit onDelete.
         $this->readdForeignKeys();
