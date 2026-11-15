@@ -2,7 +2,11 @@
 
 namespace App\Http\Controllers\Payments;
 
+use App\Events\PaymentSucceeded;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Payments\CreatePaymentRequest;
+use App\Http\Requests\Payments\RefundPaymentRequest;
+use App\Http\Resources\Payments\PaymentResource;
 use App\Models\Orders\Order;
 use App\Models\Payments\Payment;
 use App\Services\PaymentGatewayService;
@@ -20,16 +24,12 @@ class PaymentController extends Controller
             abort(403);
         }
 
-        return response()->json(['data' => $payment->load('order', 'webhookEvents')]);
+        return response()->json(['data' => new PaymentResource($payment->load('order', 'webhookEvents'))]);
     }
 
-    public function store(Request $request): JsonResponse
+    public function store(CreatePaymentRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'order_id' => ['required', 'integer', 'exists:orders,order_id'],
-            'provider' => ['sometimes', 'string', 'max:50'],
-        ]);
-
+        $validated = $request->validated();
         $order = Order::findOrFail($validated['order_id']);
 
         if ($order->customer_id !== $request->user()->user_id) {
@@ -37,12 +37,12 @@ class PaymentController extends Controller
         }
 
         if ($order->payment && $order->payment->payment_status === Payment::STATUS_PENDING) {
-            return response()->json(['data' => $order->payment]);
+            return response()->json(['data' => new PaymentResource($order->payment)]);
         }
 
         $payment = $this->gateway->createTransaction($order, $validated['provider'] ?? 'sandbox');
 
-        return response()->json(['data' => $payment], 201);
+        return response()->json(['data' => new PaymentResource($payment)], 201);
     }
 
     public function cancel(Payment $payment): JsonResponse
@@ -54,10 +54,10 @@ class PaymentController extends Controller
 
         $this->gateway->cancel($payment);
 
-        return response()->json(['data' => $payment->fresh()]);
+        return response()->json(['data' => new PaymentResource($payment->fresh())]);
     }
 
-    public function refund(Request $request, Payment $payment): JsonResponse
+    public function refund(RefundPaymentRequest $request, Payment $payment): JsonResponse
     {
         $user = request()->user();
         if (! $user || $user->role?->role_name !== 'admin') {
@@ -66,6 +66,6 @@ class PaymentController extends Controller
 
         $this->gateway->refund($payment, $request->input('amount'));
 
-        return response()->json(['data' => $payment->fresh()]);
+        return response()->json(['data' => new PaymentResource($payment->fresh())]);
     }
 }

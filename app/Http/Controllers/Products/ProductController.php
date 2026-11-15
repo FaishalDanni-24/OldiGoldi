@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\Products;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Products\StoreProductRequest;
+use App\Http\Requests\Products\UpdateProductRequest;
+use App\Http\Resources\Products\ProductResource;
 use App\Models\Products\Product;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -24,58 +27,31 @@ class ProductController extends Controller
             ->orderBy($request->string('sort', 'created_at'), $request->string('dir', 'desc'))
             ->paginate($request->integer('per_page', 15));
 
-        return response()->json($products);
+        return response()->json(ProductResource::collection($products));
     }
 
     public function show(Product $product): JsonResponse
     {
-        return response()->json(['data' => $product->load(['category', 'seller', 'images'])]);
+        return response()->json(['data' => new ProductResource($product->load(['category', 'seller', 'images', 'primaryImage']))]);
     }
 
-    public function store(Request $request): JsonResponse
+    public function store(StoreProductRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'category_id' => ['required', 'integer', 'exists:categories,category_id'],
-            'sku' => ['required', 'string', 'max:60', 'unique:products,sku'],
-            'product_name' => ['required', 'string', 'max:180'],
-            'brand' => ['nullable', 'string', 'max:100'],
-            'model' => ['nullable', 'string', 'max:120'],
-            'product_description' => ['nullable', 'string'],
-            'condition_grade' => ['required', 'in:like_new,good,fair,for_parts'],
-            'condition_notes' => ['nullable', 'string'],
-            'price' => ['required', 'numeric', 'min:0'],
-            'stock' => ['sometimes', 'integer', 'min:0'],
-            'product_status' => ['sometimes', 'in:draft,active,sold_out,inactive'],
-        ]);
-
+        $validated = $request->validated();
         $validated['user_id'] = $request->user()?->user_id;
         $validated['stock'] = $validated['stock'] ?? 1;
         $validated['product_status'] = $validated['product_status'] ?? Product::STATUS_DRAFT;
 
         $product = Product::create($validated);
 
-        return response()->json(['data' => $product->load(['category', 'images'])], 201);
+        return response()->json(['data' => new ProductResource($product->load(['category', 'images']))], 201);
     }
 
-    public function update(Request $request, Product $product): JsonResponse
+    public function update(UpdateProductRequest $request, Product $product): JsonResponse
     {
-        $validated = $request->validate([
-            'category_id' => ['sometimes', 'integer', 'exists:categories,category_id'],
-            'sku' => ['sometimes', 'string', 'max:60', 'unique:products,sku,' . $product->product_id . ',product_id'],
-            'product_name' => ['sometimes', 'string', 'max:180'],
-            'brand' => ['sometimes', 'nullable', 'string', 'max:100'],
-            'model' => ['sometimes', 'nullable', 'string', 'max:120'],
-            'product_description' => ['sometimes', 'nullable', 'string'],
-            'condition_grade' => ['sometimes', 'in:like_new,good,fair,for_parts'],
-            'condition_notes' => ['sometimes', 'nullable', 'string'],
-            'price' => ['sometimes', 'numeric', 'min:0'],
-            'stock' => ['sometimes', 'integer', 'min:0'],
-            'product_status' => ['sometimes', 'in:draft,active,sold_out,inactive'],
-        ]);
+        $product->update($request->validated());
 
-        $product->update($validated);
-
-        return response()->json(['data' => $product->fresh(['category', 'images'])]);
+        return response()->json(['data' => new ProductResource($product->fresh(['category', 'images']))]);
     }
 
     public function destroy(Product $product): JsonResponse
@@ -92,6 +68,6 @@ class ProductController extends Controller
             : Product::STATUS_ACTIVE;
         $product->save();
 
-        return response()->json(['data' => $product->fresh()]);
+        return response()->json(['data' => new ProductResource($product->fresh())]);
     }
 }

@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\Users;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Users\StoreAddressRequest;
+use App\Http\Requests\Users\UpdateAddressRequest;
+use App\Http\Resources\Users\AddressResource;
 use App\Models\Users\Address;
 use App\Models\Users\User;
 use Illuminate\Http\JsonResponse;
@@ -12,32 +15,19 @@ class AddressController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $addresses = $request->user()->addresses()->get();
-
-        return response()->json(['data' => $addresses]);
+        return response()->json(['data' => AddressResource::collection($request->user()->addresses()->get())]);
     }
 
     public function show(Address $address): JsonResponse
     {
         $this->authorizeOwner($address, request()->user());
 
-        return response()->json(['data' => $address]);
+        return response()->json(['data' => new AddressResource($address)]);
     }
 
-    public function store(Request $request): JsonResponse
+    public function store(StoreAddressRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'address_label' => ['nullable', 'string', 'max:50'],
-            'recipient_name' => ['required', 'string', 'max:120'],
-            'recipient_phone' => ['required', 'string', 'max:30'],
-            'address_line' => ['required', 'string', 'max:500'],
-            'district' => ['nullable', 'string', 'max:100'],
-            'city' => ['required', 'string', 'max:100'],
-            'province' => ['nullable', 'string', 'max:100'],
-            'postal_code' => ['nullable', 'string', 'max:15'],
-            'is_default' => ['sometimes', 'boolean'],
-        ]);
-
+        $validated = $request->validated();
         $validated['user_id'] = $request->user()->user_id;
 
         if (! empty($validated['is_default'])) {
@@ -46,24 +36,14 @@ class AddressController extends Controller
 
         $address = Address::create($validated);
 
-        return response()->json(['data' => $address], 201);
+        return response()->json(['data' => new AddressResource($address)], 201);
     }
 
-    public function update(Request $request, Address $address): JsonResponse
+    public function update(UpdateAddressRequest $request, Address $address): JsonResponse
     {
         $this->authorizeOwner($address, $request->user());
 
-        $validated = $request->validate([
-            'address_label' => ['sometimes', 'nullable', 'string', 'max:50'],
-            'recipient_name' => ['sometimes', 'string', 'max:120'],
-            'recipient_phone' => ['sometimes', 'string', 'max:30'],
-            'address_line' => ['sometimes', 'string', 'max:500'],
-            'district' => ['sometimes', 'nullable', 'string', 'max:100'],
-            'city' => ['sometimes', 'string', 'max:100'],
-            'province' => ['sometimes', 'nullable', 'string', 'max:100'],
-            'postal_code' => ['sometimes', 'nullable', 'string', 'max:15'],
-            'is_default' => ['sometimes', 'boolean'],
-        ]);
+        $validated = $request->validated();
 
         if (array_key_exists('is_default', $validated) && $validated['is_default']) {
             $request->user()->addresses()->where('address_id', '!=', $address->address_id)->update(['is_default' => false]);
@@ -71,7 +51,7 @@ class AddressController extends Controller
 
         $address->update($validated);
 
-        return response()->json(['data' => $address->fresh()]);
+        return response()->json(['data' => new AddressResource($address->fresh())]);
     }
 
     public function destroy(Address $address): JsonResponse
@@ -91,7 +71,7 @@ class AddressController extends Controller
         $user->addresses()->update(['is_default' => false]);
         $address->update(['is_default' => true]);
 
-        return response()->json(['data' => $address->fresh()]);
+        return response()->json(['data' => new AddressResource($address->fresh())]);
     }
 
     protected function authorizeOwner(Address $address, ?User $user): void

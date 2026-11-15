@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Orders;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Orders\OrderItemResource;
 use App\Models\Orders\Order;
 use Illuminate\Http\JsonResponse;
 
@@ -12,7 +13,7 @@ class OrderItemController extends Controller
     {
         $this->authorizeOwner($order, request()->user());
 
-        return response()->json(['data' => $order->items]);
+        return response()->json(['data' => OrderItemResource::collection($order->items)]);
     }
 
     protected function authorizeOwner(Order $order, ?\App\Models\Users\User $user): void

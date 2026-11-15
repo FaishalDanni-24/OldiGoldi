@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Chats;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Chats\SendMessageRequest;
+use App\Http\Resources\Chats\ChatMessageResource;
 use App\Models\Chats\ChatMessage;
 use App\Models\Chats\Conversation;
 use Illuminate\Http\JsonResponse;
@@ -22,10 +24,10 @@ class ChatMessageController extends Controller
             ->orderBy('sent_at')
             ->paginate(request()->integer('per_page', 50));
 
-        return response()->json($messages);
+        return response()->json(ChatMessageResource::collection($messages));
     }
 
-    public function store(Request $request, Conversation $conversation): JsonResponse
+    public function store(SendMessageRequest $request, Conversation $conversation): JsonResponse
     {
         $user = $request->user();
         if (! $user || ($conversation->customer_id !== $user->user_id && $conversation->admin_id !== $user->user_id && $user->role?->role_name !== 'admin')) {
@@ -36,11 +38,7 @@ class ChatMessageController extends Controller
             return response()->json(['message' => 'Conversation is closed.'], 422);
         }
 
-        $validated = $request->validate([
-            'message_type' => ['sometimes', 'in:text,image,file,system'],
-            'message_text' => ['required_if:message_type,text', 'nullable', 'string'],
-            'attachment_url' => ['nullable', 'string', 'max:1000'],
-        ]);
+        $validated = $request->validated();
 
         $message = ChatMessage::create([
             'sender_id' => $user->user_id,
@@ -53,7 +51,7 @@ class ChatMessageController extends Controller
 
         $conversation->touch();
 
-        return response()->json(['data' => $message->load('sender')], 201);
+        return response()->json(['data' => new ChatMessageResource($message->load('sender'))], 201);
     }
 
     public function markRead(ChatMessage $message): JsonResponse
@@ -65,6 +63,6 @@ class ChatMessageController extends Controller
 
         $message->update(['is_read' => true]);
 
-        return response()->json(['data' => $message->fresh()]);
+        return response()->json(['data' => new ChatMessageResource($message->fresh())]);
     }
 }

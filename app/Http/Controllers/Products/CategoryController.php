@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\Products;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Products\StoreCategoryRequest;
+use App\Http\Requests\Products\UpdateCategoryRequest;
+use App\Http\Resources\Products\CategoryResource;
 use App\Models\Products\Category;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -17,22 +20,17 @@ class CategoryController extends Controller
             ->orderBy('category_name')
             ->get();
 
-        return response()->json(['data' => $categories]);
+        return response()->json(['data' => CategoryResource::collection($categories)]);
     }
 
     public function show(Category $category): JsonResponse
     {
-        return response()->json(['data' => $category->load('products')]);
+        return response()->json(['data' => new CategoryResource($category->load('products'))]);
     }
 
-    public function store(Request $request): JsonResponse
+    public function store(StoreCategoryRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'category_name' => ['required', 'string', 'max:100', 'unique:categories,category_name'],
-            'slug' => ['nullable', 'string', 'max:120', 'unique:categories,slug'],
-            'description' => ['nullable', 'string'],
-            'is_active' => ['sometimes', 'boolean'],
-        ]);
+        $validated = $request->validated();
 
         if (empty($validated['slug'])) {
             $validated['slug'] = Str::slug($validated['category_name']);
@@ -40,21 +38,14 @@ class CategoryController extends Controller
 
         $category = Category::create($validated);
 
-        return response()->json(['data' => $category], 201);
+        return response()->json(['data' => new CategoryResource($category)], 201);
     }
 
-    public function update(Request $request, Category $category): JsonResponse
+    public function update(UpdateCategoryRequest $request, Category $category): JsonResponse
     {
-        $validated = $request->validate([
-            'category_name' => ['sometimes', 'string', 'max:100', 'unique:categories,category_name,' . $category->category_id . ',category_id'],
-            'slug' => ['sometimes', 'nullable', 'string', 'max:120', 'unique:categories,slug,' . $category->category_id . ',category_id'],
-            'description' => ['sometimes', 'nullable', 'string'],
-            'is_active' => ['sometimes', 'boolean'],
-        ]);
+        $category->update($request->validated());
 
-        $category->update($validated);
-
-        return response()->json(['data' => $category->fresh()]);
+        return response()->json(['data' => new CategoryResource($category->fresh())]);
     }
 
     public function destroy(Category $category): JsonResponse

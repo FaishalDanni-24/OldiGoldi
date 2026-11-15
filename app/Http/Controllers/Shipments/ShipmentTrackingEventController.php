@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Shipments;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Shipments\ShipmentTrackingEventResource;
 use App\Models\Shipments\Shipment;
 use App\Models\Shipments\ShipmentTrackingEvent;
 use App\Services\TrackingService;
@@ -20,7 +21,7 @@ class ShipmentTrackingEventController extends Controller
             abort(403);
         }
 
-        return response()->json(['data' => $shipment->trackingEvents()->orderByDesc('happened_at')->get()]);
+        return response()->json(['data' => ShipmentTrackingEventResource::collection($shipment->trackingEvents()->orderByDesc('happened_at')->get())]);
     }
 
     public function store(Request $request, string $provider = 'sandbox'): JsonResponse
@@ -70,6 +71,6 @@ class ShipmentTrackingEventController extends Controller
             $shipment->save();
         }
 
-        return response()->json(['data' => $event], 201);
+        return response()->json(['data' => new ShipmentTrackingEventResource($event)], 201);
     }
 }

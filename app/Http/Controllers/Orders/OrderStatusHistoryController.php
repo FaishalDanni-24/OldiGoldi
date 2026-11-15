@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Orders;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Orders\OrderStatusHistoryResource;
 use App\Models\Orders\Order;
 use Illuminate\Http\JsonResponse;
 
@@ -15,6 +16,6 @@ class OrderStatusHistoryController extends Controller
             abort(403);
         }
 
-        return response()->json(['data' => $order->statusHistories()->orderBy('changed_at')->get()]);
+        return response()->json(['data' => OrderStatusHistoryResource::collection($order->statusHistories()->orderBy('changed_at')->get())]);
     }
 }
