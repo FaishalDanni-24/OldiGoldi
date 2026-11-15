@@ -3,8 +3,9 @@
 namespace App\Http\Controllers\Chats;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Chats\StoreConversationRequest;
+use App\Http\Resources\Chats\ConversationResource;
 use App\Models\Chats\Conversation;
-use App\Models\Users\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -19,20 +20,14 @@ class ConversationController extends Controller
             ->orderByDesc('updated_at')
             ->paginate($request->integer('per_page', 15));
 
-        return response()->json($conversations);
+        return response()->json(ConversationResource::collection($conversations));
     }
 
-    public function store(Request $request): JsonResponse
+    public function store(StoreConversationRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'admin_id' => ['nullable', 'integer', 'exists:users,user_id'],
-            'order_id' => ['nullable', 'integer', 'exists:orders,order_id'],
-            'product_id' => ['nullable', 'integer', 'exists:products,product_id'],
-        ]);
-
+        $validated = $request->validated();
         $user = $request->user();
 
-        // dedup: reuse open conversation for same customer/admin/product/order
         $existing = Conversation::where('customer_id', $user->user_id)
             ->where('conversation_status', Conversation::STATUS_OPEN)
             ->when(! empty($validated['admin_id']), fn ($q) => $q->where('admin_id', $validated['admin_id']))
@@ -41,7 +36,7 @@ class ConversationController extends Controller
             ->first();
 
         if ($existing) {
-            return response()->json(['data' => $existing]);
+            return response()->json(['data' => new ConversationResource($existing)]);
         }
 
         $conversation = Conversation::create([
@@ -52,7 +47,7 @@ class ConversationController extends Controller
             'conversation_status' => Conversation::STATUS_OPEN,
         ]);
 
-        return response()->json(['data' => $conversation], 201);
+        return response()->json(['data' => new ConversationResource($conversation)], 201);
     }
 
     public function show(Conversation $conversation): JsonResponse
@@ -62,7 +57,7 @@ class ConversationController extends Controller
             abort(403);
         }
 
-        return response()->json(['data' => $conversation->load(['customer', 'admin', 'order', 'product', 'messages'])]);
+        return response()->json(['data' => new ConversationResource($conversation->load(['customer', 'admin', 'order', 'product', 'messages']))]);
     }
 
     public function close(Conversation $conversation): JsonResponse
@@ -70,6 +65,6 @@ class ConversationController extends Controller
         $conversation->conversation_status = Conversation::STATUS_CLOSED;
         $conversation->save();
 
-        return response()->json(['data' => $conversation->fresh()]);
+        return response()->json(['data' => new ConversationResource($conversation->fresh())]);
     }
 }

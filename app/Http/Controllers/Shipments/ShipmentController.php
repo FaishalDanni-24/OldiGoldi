@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Shipments;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Shipments\CreateShipmentRequest;
+use App\Http\Resources\Shipments\ShipmentResource;
 use App\Models\Orders\Order;
 use App\Models\Shipments\Shipment;
 use App\Services\TrackingService;
@@ -20,19 +22,12 @@ class ShipmentController extends Controller
             abort(403);
         }
 
-        return response()->json(['data' => $shipment->load('trackingEvents', 'order')]);
+        return response()->json(['data' => new ShipmentResource($shipment->load('trackingEvents', 'order'))]);
     }
 
-    public function store(Request $request): JsonResponse
+    public function store(CreateShipmentRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'order_id' => ['required', 'integer', 'exists:orders,order_id'],
-            'tracking_provider' => ['required', 'string', 'max:60'],
-            'courier_code' => ['nullable', 'string', 'max:60'],
-            'courier_name' => ['nullable', 'string', 'max:100'],
-            'tracking_number' => ['nullable', 'string', 'max:150'],
-        ]);
-
+        $validated = $request->validated();
         $order = Order::findOrFail($validated['order_id']);
 
         $shipment = Shipment::create([
@@ -46,15 +41,19 @@ class ShipmentController extends Controller
 
         $this->tracking->createLabel($shipment);
 
-        return response()->json(['data' => $shipment->fresh('trackingEvents')], 201);
+        return response()->json(['data' => new ShipmentResource($shipment->fresh('trackingEvents'))], 201);
     }
 
     public function track(Shipment $shipment): JsonResponse
     {
         $added = $this->tracking->syncTracking($shipment);
 
+        if ($shipment->fresh()->shipment_status === Shipment::STATUS_DELIVERED) {
+            event(new \App\Events\ShipmentDelivered($shipment->fresh()));
+        }
+
         return response()->json([
-            'data' => $shipment->fresh('trackingEvents'),
+            'data' => new ShipmentResource($shipment->fresh('trackingEvents')),
             'new_events' => $added,
         ]);
     }
@@ -64,6 +63,6 @@ class ShipmentController extends Controller
         $shipment->shipment_status = Shipment::STATUS_CANCELLED;
         $shipment->save();
 
-        return response()->json(['data' => $shipment->fresh()]);
+        return response()->json(['data' => new ShipmentResource($shipment->fresh())]);
     }
 }

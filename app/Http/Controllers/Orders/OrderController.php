@@ -3,6 +3,10 @@
 namespace App\Http\Controllers\Orders;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Orders\CancelOrderRequest;
+use App\Http\Requests\Orders\CheckoutRequest;
+use App\Http\Requests\Orders\UpdateOrderStatusRequest;
+use App\Http\Resources\Orders\OrderResource;
 use App\Models\Orders\Order;
 use App\Services\CheckoutService;
 use App\Services\OrderStatusService;
@@ -24,32 +28,19 @@ class OrderController extends Controller
             ->orderByDesc('created_at')
             ->paginate($request->integer('per_page', 15));
 
-        return response()->json($orders);
+        return response()->json(OrderResource::collection($orders));
     }
 
     public function show(Order $order): JsonResponse
     {
         $this->authorizeOwner($order, request()->user());
 
-        return response()->json(['data' => $order->load(['items', 'payment', 'shipments.trackingEvents', 'statusHistories'])]);
+        return response()->json(['data' => new OrderResource($order->load(['items', 'payment', 'shipments.trackingEvents', 'statusHistories']))]);
     }
 
-    public function store(Request $request): JsonResponse
+    public function store(CheckoutRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'address_id' => ['required', 'integer', 'exists:addresses,address_id'],
-            'shipping_cost' => ['sometimes', 'numeric', 'min:0'],
-            'discount_amount' => ['sometimes', 'numeric', 'min:0'],
-            'recipient_name' => ['sometimes', 'string', 'max:120'],
-            'recipient_phone' => ['sometimes', 'string', 'max:30'],
-            'shipping_address_line' => ['sometimes', 'string', 'max:500'],
-            'shipping_district' => ['sometimes', 'nullable', 'string', 'max:100'],
-            'shipping_city' => ['sometimes', 'string', 'max:100'],
-            'shipping_province' => ['sometimes', 'nullable', 'string', 'max:100'],
-            'shipping_postal_code' => ['sometimes', 'nullable', 'string', 'max:15'],
-            'customer_note' => ['sometimes', 'nullable', 'string'],
-        ]);
-
+        $validated = $request->validated();
         $user = $request->user();
         $cart = $user->cart;
 
@@ -65,10 +56,10 @@ class OrderController extends Controller
 
         $order = $this->checkout->checkout($cart, $validated['address_id'], $snapshot, $validated['customer_note'] ?? null);
 
-        return response()->json(['data' => $order], 201);
+        return response()->json(['data' => new OrderResource($order)], 201);
     }
 
-    public function cancel(Request $request, Order $order): JsonResponse
+    public function cancel(CancelOrderRequest $request, Order $order): JsonResponse
     {
         $this->authorizeOwner($order, $request->user());
 
@@ -78,19 +69,15 @@ class OrderController extends Controller
 
         $order = $this->statusService->transition($order, Order::STATUS_CANCELLED, $request->user(), $request->input('note'));
 
-        return response()->json(['data' => $order]);
+        return response()->json(['data' => new OrderResource($order)]);
     }
 
-    public function updateStatus(Request $request, Order $order): JsonResponse
+    public function updateStatus(UpdateOrderStatusRequest $request, Order $order): JsonResponse
     {
-        $validated = $request->validate([
-            'status' => ['required', 'in:pending_payment,paid,processing,shipped,delivered,completed,cancelled,refunded'],
-            'note' => ['sometimes', 'nullable', 'string'],
-        ]);
-
+        $validated = $request->validated();
         $order = $this->statusService->transition($order, $validated['status'], $request->user(), $validated['note'] ?? null);
 
-        return response()->json(['data' => $order]);
+        return response()->json(['data' => new OrderResource($order)]);
     }
 
     protected function authorizeOwner(Order $order, ?\App\Models\Users\User $user): void

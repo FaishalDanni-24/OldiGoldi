@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Carts;
 
 use App\Http\Controllers\Controller;
-use App\Models\Carts\Cart;
+use App\Http\Resources\Carts\CartResource;
 use App\Services\CartService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -16,7 +16,7 @@ class CartController extends Controller
     {
         $cart = $this->cartService->getOrCreateCart($request->user());
 
-        return response()->json(['data' => $cart->load('items.product')]);
+        return response()->json(['data' => new CartResource($cart->load('items.product'))]);
     }
 
     public function clear(Request $request): JsonResponse

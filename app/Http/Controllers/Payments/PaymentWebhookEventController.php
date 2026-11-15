@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Payments;
 use App\Http\Controllers\Controller;
 use App\Models\Payments\Payment;
 use App\Models\Payments\PaymentWebhookEvent;
+use App\Http\Resources\Payments\PaymentWebhookEventResource;
 use App\Services\PaymentGatewayService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -34,7 +35,7 @@ class PaymentWebhookEventController extends Controller
             ->first();
 
         if ($existing) {
-            return response()->json(['data' => $existing, 'duplicate' => true]);
+            return response()->json(['data' => new PaymentWebhookEventResource($existing), 'duplicate' => true]);
         }
 
         $payment = null;
@@ -68,6 +69,7 @@ class PaymentWebhookEventController extends Controller
                 if (in_array($status, ['paid', 'success', 'settlement'], true)) {
                     $payment->markPaid($payload['transaction_id'] ?? null);
                     $payment->order?->update(['order_status' => \App\Models\Orders\Order::STATUS_PAID]);
+                    event(new \App\Events\PaymentSucceeded($payment->fresh()));
                 } elseif (in_array($status, ['failed', 'deny', 'cancel'], true)) {
                     $payment->payment_status = Payment::STATUS_FAILED;
                     $payment->save();
@@ -81,6 +83,6 @@ class PaymentWebhookEventController extends Controller
             $event->markFailed($e->getMessage());
         }
 
-        return response()->json(['data' => $event], 201);
+        return response()->json(['data' => new PaymentWebhookEventResource($event)], 201);
     }
 }

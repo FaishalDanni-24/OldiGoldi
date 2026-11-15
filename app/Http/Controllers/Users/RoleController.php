@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Users;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Users\RoleResource;
 use App\Models\Users\Role;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -11,34 +12,26 @@ class RoleController extends Controller
 {
     public function index(): JsonResponse
     {
-        return response()->json(['data' => Role::all()]);
+        return response()->json(['data' => RoleResource::collection(Role::all())]);
     }
 
     public function show(Role $role): JsonResponse
     {
-        return response()->json(['data' => $role]);
+        return response()->json(['data' => new RoleResource($role)]);
     }
 
-    public function store(Request $request): JsonResponse
+    public function store(\App\Http\Requests\Users\StoreRoleRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'role_name' => ['required', 'string', 'max:30', 'unique:roles,role_name'],
-        ]);
+        $role = Role::create($request->validated());
 
-        $role = Role::create($validated);
-
-        return response()->json(['data' => $role], 201);
+        return response()->json(['data' => new RoleResource($role)], 201);
     }
 
-    public function update(Request $request, Role $role): JsonResponse
+    public function update(\App\Http\Requests\Users\UpdateRoleRequest $request, Role $role): JsonResponse
     {
-        $validated = $request->validate([
-            'role_name' => ['required', 'string', 'max:30', 'unique:roles,role_name,' . $role->role_id . ',role_id'],
-        ]);
+        $role->update($request->validated());
 
-        $role->update($validated);
-
-        return response()->json(['data' => $role->fresh()]);
+        return response()->json(['data' => new RoleResource($role->fresh())]);
     }
 
     public function destroy(Role $role): JsonResponse

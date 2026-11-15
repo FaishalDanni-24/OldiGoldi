@@ -31,6 +31,11 @@ class OrderItem extends Model
     protected static function booted(): void
     {
         static::saving(function (self $item) {
+            // On MySQL, line_total is a regular column (converted in Section D migration).
+            // On SQLite/other drivers it remains a generated column, so we must not set it.
+            if (\Illuminate\Support\Facades\DB::getDriverName() !== 'mysql') {
+                return;
+            }
             if ($item->unit_price !== null && $item->quantity !== null) {
                 $item->line_total = (float) $item->unit_price * (int) $item->quantity;
             }

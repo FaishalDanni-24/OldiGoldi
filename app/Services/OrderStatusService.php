@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Events\OrderStatusChanged;
 use App\Models\Orders\Order;
 use App\Models\Orders\OrderStatusHistory;
 use App\Models\Users\User;
@@ -21,6 +22,8 @@ class OrderStatusService
             'new_status' => $newStatus,
             'note' => $note,
         ]);
+
+        event(new OrderStatusChanged($order->fresh(), $old, $newStatus));
 
         return $order->fresh();
     }
