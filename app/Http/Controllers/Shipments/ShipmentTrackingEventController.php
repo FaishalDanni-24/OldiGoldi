@@ -24,53 +24,33 @@ class ShipmentTrackingEventController extends Controller
         return response()->json(['data' => ShipmentTrackingEventResource::collection($shipment->trackingEvents()->orderByDesc('happened_at')->get())]);
     }
 
-    public function store(Request $request, string $provider = 'sandbox'): JsonResponse
+    public function store(Request $request): JsonResponse
     {
-        $payload = $request->all();
-        $signature = $request->header('X-Signature') ?? $request->header('X-Webhook-Signature');
+        $raw = $request->getContent();
 
-        if (! $this->tracking->verifyWebhook($payload, $signature)) {
-            return response()->json(['message' => 'Invalid signature.'], 401);
+        // Biteship verification probe when adding the webhook: empty body.
+        if (trim($raw) === '') {
+            return response()->json(['message' => 'OK'], 200);
         }
 
-        $shipmentId = $payload['shipment_id'] ?? $payload['tracking_number'] ?? null;
-        $shipment = null;
-        if ($shipmentId) {
-            $shipment = Shipment::where('provider_shipment_id', $shipmentId)
-                ->orWhere('tracking_number', $shipmentId)
-                ->first();
+        $payload = json_decode($raw, true) ?: $request->all();
+        $deliveryId = $request->header('X-Biteship-Delivery-Id');
+        $payloadEventId = $payload['external_event_id'] ?? $payload['event_id'] ?? null;
+
+        // Dedup via delivery id or payload event id.
+        if ($deliveryId && ShipmentTrackingEvent::where('external_event_id', $deliveryId)->exists()) {
+            return response()->json(['duplicate' => true], 200);
+        }
+        if ($payloadEventId && ShipmentTrackingEvent::where('external_event_id', $payloadEventId)->exists()) {
+            return response()->json(['duplicate' => true], 200);
         }
 
-        if (! $shipment) {
+        $handled = $this->tracking->handleWebhook($payload, $deliveryId);
+
+        if (! $handled) {
             return response()->json(['message' => 'Shipment not found.'], 404);
         }
 
-        $externalId = $payload['event_id'] ?? $payload['id'] ?? null;
-        if ($externalId && $shipment->trackingEvents()->where('external_event_id', $externalId)->exists()) {
-            return response()->json(['duplicate' => true]);
-        }
-
-        $event = ShipmentTrackingEvent::create([
-            'shipment_id' => $shipment->shipment_id,
-            'external_event_id' => $externalId,
-            'event_code' => $payload['code'] ?? null,
-            'event_status' => $payload['status'] ?? 'unknown',
-            'description' => $payload['description'] ?? null,
-            'location' => $payload['location'] ?? null,
-            'happened_at' => isset($payload['happened_at']) ? \Carbon\Carbon::parse($payload['happened_at']) : now(),
-            'raw_payload' => $payload,
-        ]);
-
-        // update shipment status if provided
-        if (! empty($payload['status']) && defined(Shipment::class . '::STATUS_' . strtoupper($payload['status']))) {
-            $shipment->shipment_status = constant(Shipment::class . '::STATUS_' . strtoupper($payload['status']));
-            $shipment->last_synced_at = now();
-            if ($payload['status'] === 'delivered') {
-                $shipment->delivered_at = now();
-            }
-            $shipment->save();
-        }
-
-        return response()->json(['data' => new ShipmentTrackingEventResource($event)], 201);
+        return response()->json(['message' => 'OK'], 200);
     }
 }

@@ -10,20 +10,22 @@ class VerifyTrackingSignature
 {
     public function handle(Request $request, Closure $next): Response
     {
+        $headerName = config('services.tracking.webhook_header', 'X-Biteship-Signature');
         $secret = config('services.tracking.webhook_secret');
 
+        // Sandbox: no secret configured -> allow through.
         if (! $secret) {
             return $next($request);
         }
 
-        $signature = $request->header('X-Signature')
-            ?? $request->header('X-Webhook-Signature')
-            ?? $request->header('X-Tracking-Signature');
+        // Biteship verification probe when adding the webhook: empty body. Accept.
+        if (trim($request->getContent()) === '') {
+            return $next($request);
+        }
 
-        $raw = $request->getContent();
-        $expected = hash_hmac('sha256', $raw, $secret);
+        $value = $request->header($headerName);
 
-        if (! $signature || ! hash_equals($expected, $signature)) {
+        if (! $value || ! hash_equals((string) $secret, (string) $value)) {
             return response()->json(['message' => 'Invalid tracking webhook signature.'], 401);
         }
 

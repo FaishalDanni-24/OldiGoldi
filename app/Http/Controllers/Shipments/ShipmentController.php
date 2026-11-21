@@ -32,14 +32,21 @@ class ShipmentController extends Controller
 
         $shipment = Shipment::create([
             'order_id' => $order->order_id,
-            'tracking_provider' => $validated['tracking_provider'],
-            'courier_code' => $validated['courier_code'] ?? null,
-            'courier_name' => $validated['courier_name'] ?? null,
-            'tracking_number' => $validated['tracking_number'] ?? null,
+            'tracking_provider' => 'biteship',
+            'courier_code' => $validated['courier_company'],
+            'courier_name' => null,
+            'tracking_number' => null,
             'shipment_status' => Shipment::STATUS_PENDING,
         ]);
 
-        $this->tracking->createLabel($shipment);
+        $this->tracking->createLabel($shipment, [
+            'courier_type' => $validated['courier_type'],
+            'delivery_type' => $validated['delivery_type'] ?? 'now',
+            'delivery_date' => $validated['delivery_date'] ?? null,
+            'delivery_time' => $validated['delivery_time'] ?? null,
+            'courier_insurance' => $validated['courier_insurance'] ?? null,
+            'order_note' => $validated['order_note'] ?? null,
+        ]);
 
         return response()->json(['data' => new ShipmentResource($shipment->fresh('trackingEvents'))], 201);
     }

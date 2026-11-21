@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'order_id',
     'tracking_provider',
     'provider_shipment_id',
+    'provider_tracking_id',
     'courier_code',
     'courier_name',
     'tracking_number',
@@ -49,6 +50,25 @@ class Shipment extends Model
             'delivered_at' => 'datetime',
             'last_synced_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Map a Biteship status string to our shipment_status enum.
+     */
+    public static function mapBiteshipStatus(string $status): string
+    {
+        return match ($status) {
+            'confirmed', 'scheduled' => self::STATUS_LABEL_CREATED,
+            'allocated', 'picking_up', 'picked' => self::STATUS_PICKED_UP,
+            'in_transit' => self::STATUS_IN_TRANSIT,
+            'dropping_off' => self::STATUS_OUT_FOR_DELIVERY,
+            'delivered' => self::STATUS_DELIVERED,
+            'cancelled' => self::STATUS_CANCELLED,
+            'returned', 'return_in_transit' => self::STATUS_RETURNED,
+            'on_hold' => self::STATUS_UNKNOWN,
+            'rejected', 'disposed', 'courier_not_found' => self::STATUS_FAILED,
+            default => self::STATUS_UNKNOWN,
+        };
     }
 
     public function order(): BelongsTo

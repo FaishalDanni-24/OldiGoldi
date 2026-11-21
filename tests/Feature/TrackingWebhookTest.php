@@ -45,7 +45,7 @@ class TrackingWebhookTest extends TestCase
             'happened_at' => now()->toDateTimeString(),
         ]);
 
-        $response->assertStatus(201);
+        $response->assertStatus(200);
         $this->assertDatabaseHas('shipment_tracking_events', [
             'shipment_id' => $shipment->shipment_id,
             'external_event_id' => 'EVT-T1',
@@ -65,7 +65,7 @@ class TrackingWebhookTest extends TestCase
             'tracking_number' => 'TRK-TEST-2',
             'status' => 'in_transit',
             'event_id' => 'EVT-DUP',
-        ])->assertStatus(201);
+        ])->assertStatus(200);
 
         $second = $this->postJson('/api/v1/tracking/webhook/sandbox', [
             'tracking_number' => 'TRK-TEST-2',

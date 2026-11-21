@@ -12,10 +12,13 @@ class CreateShipmentRequest extends FormRequest
     {
         return [
             'order_id' => ['required', 'integer', 'exists:orders,order_id'],
-            'tracking_provider' => ['required', 'string', 'max:60'],
-            'courier_code' => ['nullable', 'string', 'max:60'],
-            'courier_name' => ['nullable', 'string', 'max:100'],
-            'tracking_number' => ['nullable', 'string', 'max:150'],
+            'courier_company' => ['required', 'string', 'max:60'],
+            'courier_type' => ['required', 'string', 'max:60'],
+            'delivery_type' => ['sometimes', 'in:now,scheduled'],
+            'delivery_date' => ['sometimes', 'nullable', 'date'],
+            'delivery_time' => ['sometimes', 'nullable', 'string', 'max:10'],
+            'courier_insurance' => ['sometimes', 'nullable', 'numeric', 'min:0'],
+            'order_note' => ['sometimes', 'nullable', 'string'],
         ];
     }
 }
