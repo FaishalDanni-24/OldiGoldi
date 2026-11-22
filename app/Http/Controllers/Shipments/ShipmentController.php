@@ -39,14 +39,18 @@ class ShipmentController extends Controller
             'shipment_status' => Shipment::STATUS_PENDING,
         ]);
 
-        $this->tracking->createLabel($shipment, [
-            'courier_type' => $validated['courier_type'],
-            'delivery_type' => $validated['delivery_type'] ?? 'now',
-            'delivery_date' => $validated['delivery_date'] ?? null,
-            'delivery_time' => $validated['delivery_time'] ?? null,
-            'courier_insurance' => $validated['courier_insurance'] ?? null,
-            'order_note' => $validated['order_note'] ?? null,
-        ]);
+        try {
+            $this->tracking->createLabel($shipment, [
+                'courier_type' => $validated['courier_type'],
+                'delivery_type' => $validated['delivery_type'] ?? 'now',
+                'delivery_date' => $validated['delivery_date'] ?? null,
+                'delivery_time' => $validated['delivery_time'] ?? null,
+                'courier_insurance' => $validated['courier_insurance'] ?? null,
+                'order_note' => $validated['order_note'] ?? null,
+            ]);
+        } catch (\App\Exceptions\ExternalServiceException $e) {
+            return response()->json(['message' => $e->getMessage()], 502);
+        }
 
         return response()->json(['data' => new ShipmentResource($shipment->fresh('trackingEvents'))], 201);
     }

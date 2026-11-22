@@ -132,8 +132,17 @@ class TrackingService
                 }
 
                 Log::warning('Biteship createOrder failed', ['status' => $response->status(), 'body' => $response->body()]);
+                throw new \App\Exceptions\ExternalServiceException(
+                    'Biteship',
+                    $response->status(),
+                    'Biteship createOrder failed: HTTP ' . $response->status()
+                );
             } catch (\Throwable $e) {
                 Log::error('Biteship createOrder exception', ['error' => $e->getMessage()]);
+                if (! $e instanceof \App\Exceptions\ExternalServiceException) {
+                    throw new \App\Exceptions\ExternalServiceException('Biteship', null, $e->getMessage(), $e);
+                }
+                throw $e;
             }
         }
 

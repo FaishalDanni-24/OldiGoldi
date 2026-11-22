@@ -134,9 +134,18 @@ class PaymentGatewayService
                     'status' => $response->status(),
                     'body' => $response->body(),
                 ]);
+                throw new \App\Exceptions\ExternalServiceException(
+                    'DOKU',
+                    $response->status(),
+                    'DOKU createTransaction failed: HTTP ' . $response->status()
+                );
             }
         } catch (\Throwable $e) {
             Log::error('DOKU createTransaction exception', ['error' => $e->getMessage()]);
+            if (! $e instanceof \App\Exceptions\ExternalServiceException) {
+                throw new \App\Exceptions\ExternalServiceException('DOKU', null, $e->getMessage(), $e);
+            }
+            throw $e;
         }
 
         return $payment;

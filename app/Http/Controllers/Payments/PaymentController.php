@@ -40,7 +40,11 @@ class PaymentController extends Controller
             return response()->json(['data' => new PaymentResource($order->payment)]);
         }
 
-        $payment = $this->gateway->createTransaction($order, $validated['provider'] ?? 'doku');
+        try {
+            $payment = $this->gateway->createTransaction($order, $validated['provider'] ?? 'doku');
+        } catch (\App\Exceptions\ExternalServiceException $e) {
+            return response()->json(['message' => $e->getMessage()], 502);
+        }
 
         return response()->json(['data' => new PaymentResource($payment)], 201);
     }
