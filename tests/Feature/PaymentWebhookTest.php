@@ -15,6 +15,12 @@ class PaymentWebhookTest extends TestCase
 {
     use RefreshDatabase;
 
+    private function customer(): User
+    {
+        $role = Role::factory()->create(['role_name' => 'customer']);
+        return User::factory()->create(['role_id' => $role->role_id, 'account_status' => 'active']);
+    }
+
     private function makeOrderWithPayment(User $user): array
     {
         $product = Product::factory()->create(['product_status' => 'active', 'stock' => 5, 'price' => 100000]);
@@ -34,15 +40,9 @@ class PaymentWebhookTest extends TestCase
         return [$order, $payment];
     }
 
-    private function customer(): User
+    public function test_webhook_rejects_missing_invoice_number(): void
     {
-        $role = Role::factory()->create(['role_name' => 'customer']);
-        return User::factory()->create(['role_id' => $role->role_id, 'account_status' => 'active']);
-    }
-
-    public function test_webhook_rejects_missing_event_id(): void
-    {
-        $this->postJson('/api/v1/payments/webhook/sandbox', ['status' => 'paid'])
+        $this->postJson('/api/v1/payments/webhook/sandbox', ['transaction' => ['status' => 'SUCCESS']])
             ->assertStatus(422);
     }
 
@@ -52,10 +52,8 @@ class PaymentWebhookTest extends TestCase
         [$order, $payment] = $this->makeOrderWithPayment($user);
 
         $response = $this->postJson('/api/v1/payments/webhook/sandbox', [
-            'event_id' => 'EVT-001',
-            'order_id' => $order->order_id,
-            'status' => 'paid',
-            'transaction_id' => 'TRX-001',
+            'order' => ['invoice_number' => $order->order_number, 'amount' => 100000],
+            'transaction' => ['status' => 'SUCCESS', 'original_request_id' => 'EVT-001'],
         ]);
 
         $response->assertStatus(201);
@@ -69,15 +67,13 @@ class PaymentWebhookTest extends TestCase
         [$order, $payment] = $this->makeOrderWithPayment($user);
 
         $this->postJson('/api/v1/payments/webhook/sandbox', [
-            'event_id' => 'EVT-DUP',
-            'order_id' => $order->order_id,
-            'status' => 'paid',
+            'order' => ['invoice_number' => $order->order_number, 'amount' => 100000],
+            'transaction' => ['status' => 'SUCCESS', 'original_request_id' => 'EVT-DUP'],
         ])->assertStatus(201);
 
         $second = $this->postJson('/api/v1/payments/webhook/sandbox', [
-            'event_id' => 'EVT-DUP',
-            'order_id' => $order->order_id,
-            'status' => 'paid',
+            'order' => ['invoice_number' => $order->order_number, 'amount' => 100000],
+            'transaction' => ['status' => 'SUCCESS', 'original_request_id' => 'EVT-DUP'],
         ]);
 
         $second->assertStatus(200)
@@ -90,11 +86,16 @@ class PaymentWebhookTest extends TestCase
         [$order, $payment] = $this->makeOrderWithPayment($user);
 
         $this->postJson('/api/v1/payments/webhook/sandbox', [
-            'event_id' => 'EVT-FAIL',
-            'order_id' => $order->order_id,
-            'status' => 'failed',
+            'order' => ['invoice_number' => $order->order_number, 'amount' => 100000],
+            'transaction' => ['status' => 'FAILED', 'original_request_id' => 'EVT-FAIL'],
         ])->assertStatus(201);
 
         $this->assertEquals('failed', $payment->fresh()->payment_status);
+    }
+
+    public function test_webhook_handles_verification_probe(): void
+    {
+        $this->post('/api/v1/payments/webhook/sandbox', [], ['Content-Type' => 'application/json'])
+            ->assertStatus(200);
     }
 }

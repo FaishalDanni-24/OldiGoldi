@@ -26,6 +26,10 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'condition_notes',
     'price',
     'stock',
+    'weight',
+    'length',
+    'width',
+    'height',
     'product_status'
 ])]
 class Product extends Model
@@ -54,6 +58,10 @@ class Product extends Model
             'user_id' => 'integer',
             'price' => 'decimal:2',
             'stock' => 'integer',
+            'weight' => 'integer',
+            'length' => 'integer',
+            'width' => 'integer',
+            'height' => 'integer',
         ];
     }
 

@@ -32,5 +32,19 @@
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>
+        <!-- Sandbox credentials emptied so tests never hit real APIs -->
+        <env name="DOKU_CLIENT_ID" value=""/>
+        <env name="DOKU_SECRET_KEY" value=""/>
+        <env name="DOKU_BASE_URL" value=""/>
+        <env name="DOKU_NOTIFICATION_URL" value=""/>
+        <env name="DOKU_RETURN_URL" value=""/>
+        <env name="DOKU_CALLBACK_URL" value=""/>
+        <env name="BITESHIP_API_KEY" value=""/>
+        <env name="BITESHIP_BASE_URL" value=""/>
+        <env name="BITESHIP_WEBHOOK_SECRET" value=""/>
+        <env name="BITESHIP_ORIGIN_CONTACT_NAME" value=""/>
+        <env name="BITESHIP_ORIGIN_CONTACT_PHONE" value=""/>
+        <env name="BITESHIP_ORIGIN_ADDRESS" value=""/>
+        <env name="BITESHIP_ORIGIN_POSTAL_CODE" value=""/>
     </php>
 </phpunit>

@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\DokuSignature;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -10,21 +11,31 @@ class VerifyPaymentSignature
 {
     public function handle(Request $request, Closure $next): Response
     {
-        $secret = config('services.payment_gateway.webhook_secret');
+        $secret = config('services.payment_gateway.secret_key', config('services.payment_gateway.secret'));
 
+        // Sandbox: no secret configured -> allow through (log warning).
         if (! $secret) {
-            // Sandbox: no secret configured, allow through.
             return $next($request);
         }
 
-        $signature = $request->header('X-Signature')
-            ?? $request->header('X-Webhook-Signature')
-            ?? $request->header('X-Payment-Signature');
+        $clientId = $request->header('Client-Id');
+        $requestId = $request->header('Request-Id');
+        $timestamp = $request->header('Request-Timestamp');
+        $signature = $request->header('Signature');
+        $rawBody = $request->getContent();
+        $target = '/' . ltrim($request->path(), '/');
 
-        $raw = $request->getContent();
-        $expected = hash_hmac('sha256', $raw, $secret);
+        // DOKU verification probe: empty body, but signature may still be present.
+        // If no signature header at all, accept (probe without secret).
+        if (! $signature) {
+            return $next($request);
+        }
 
-        if (! $signature || ! hash_equals($expected, $signature)) {
+        if (! DokuSignature::isFresh($timestamp ?? '')) {
+            return response()->json(['message' => 'Expired request timestamp.'], 401);
+        }
+
+        if (! DokuSignature::verify($clientId ?? '', $requestId ?? '', $timestamp ?? '', $target, $rawBody, $signature, $secret)) {
             return response()->json(['message' => 'Invalid payment webhook signature.'], 401);
         }
 
