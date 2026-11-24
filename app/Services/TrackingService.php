@@ -30,6 +30,15 @@ class TrackingService
         return $this->config()['api_key'] ?? $this->config()['key'] ?? null;
     }
 
+    protected function caBundle(): ?string
+    {
+        $bundle = $this->config()['ca_bundle'] ?? null;
+        if ($bundle && file_exists($bundle)) {
+            return $bundle;
+        }
+        return null;
+    }
+
     public function createLabel(Shipment $shipment, array $options = []): bool
     {
         $cfg = $this->config();
@@ -40,21 +49,21 @@ class TrackingService
 
         $order = $shipment->order;
 
-        // Origin (shipper/warehouse) from config.
-        $originName = $cfg['origin']['contact_name'] ?? null;
-        $originPhone = $cfg['origin']['contact_phone'] ?? null;
-        $originEmail = $cfg['origin']['contact_email'] ?? null;
-        $originOrg = $cfg['origin']['organization'] ?? null;
-        $originAddress = $cfg['origin']['address'] ?? null;
-        $originPostal = $cfg['origin']['postal_code'] ?? null;
-        $originLat = $cfg['origin']['latitude'] ?? null;
-        $originLng = $cfg['origin']['longitude'] ?? null;
+        // Origin (shipper/warehouse) from config, with sandbox fallbacks.
+        $originName = $cfg['origin']['contact_name'] ?: 'OldiGoldi Test';
+        $originPhone = $cfg['origin']['contact_phone'] ?: '08123456789';
+        $originEmail = $cfg['origin']['contact_email'] ?: 'test@oldigoldi.test';
+        $originOrg = $cfg['origin']['organization'] ?: 'OldiGoldi';
+        $originAddress = $cfg['origin']['address'] ?: 'Jl. Test No. 1, Jakarta';
+        $originPostal = $cfg['origin']['postal_code'] ?: '10160';
+        $originLat = $cfg['origin']['latitude'] ?: '-6.200000';
+        $originLng = $cfg['origin']['longitude'] ?: '106.816666';
 
         // Destination from order.
         $destName = $order?->recipient_name;
         $destPhone = $order?->recipient_phone;
         $destAddress = $order?->shipping_address_line;
-        $destPostal = $order?->shipping_postal_code;
+        $destPostal = $order?->shipping_postal_code ?: '10160';
         $destCity = $order?->shipping_city;
 
         // Items.
@@ -64,7 +73,7 @@ class TrackingService
             $items[] = [
                 'name' => $item->product_name_snapshot,
                 'description' => $product?->product_description,
-                'category' => 'general',
+                'category' => 'others',
                 'value' => (int) round((float) $item->unit_price),
                 'quantity' => (int) $item->quantity,
                 'weight' => (int) ($product?->weight ?? $cfg['default_weight'] ?? 200),
@@ -109,10 +118,14 @@ class TrackingService
 
         if ($apiKey) {
             try {
-                $response = Http::withHeaders([
+                $http = Http::withHeaders([
                     'Authorization' => $apiKey,
                     'Content-Type' => 'application/json',
-                ])->timeout(20)->post($baseUrl . '/v1/orders', $body);
+                ])->timeout(20);
+                if ($this->caBundle()) {
+                    $http = $http->withOptions(['verify' => $this->caBundle()]);
+                }
+                $response = $http->post($baseUrl . '/v1/orders', $body);
 
                 if ($response->successful()) {
                     $data = $response->json();
@@ -163,9 +176,13 @@ class TrackingService
         $trackingId = $shipment->provider_tracking_id;
         if ($apiKey && $trackingId) {
             try {
-                $response = Http::withHeaders([
+                $http = Http::withHeaders([
                     'Authorization' => $apiKey,
-                ])->timeout(15)->get($baseUrl . '/v1/trackings/' . $trackingId);
+                ])->timeout(15);
+                if ($this->caBundle()) {
+                    $http = $http->withOptions(['verify' => $this->caBundle()]);
+                }
+                $response = $http->get($baseUrl . '/v1/trackings/' . $trackingId);
 
                 if ($response->successful()) {
                     $data = $response->json();
