@@ -40,6 +40,7 @@ return [
         'client_id' => env('DOKU_CLIENT_ID', env('PAYMENT_GATEWAY_KEY')),
         'secret_key' => env('DOKU_SECRET_KEY', env('PAYMENT_GATEWAY_SECRET')),
         'base_url' => env('DOKU_BASE_URL', env('PAYMENT_GATEWAY_URL', 'https://api-sandbox.doku.com')),
+        'ca_bundle' => env('DOKU_CA_BUNDLE', 'C:/laragon/etc/ssl/cacert.pem'),
         'notification_url' => env('DOKU_NOTIFICATION_URL', rtrim(env('APP_URL', 'http://localhost'), '/') . '/api/v1/payments/webhook/doku'),
         'return_url' => env('DOKU_RETURN_URL', rtrim(env('APP_URL', 'http://localhost'), '/') . '/payment/return'),
         'callback_url' => env('DOKU_CALLBACK_URL', rtrim(env('APP_URL', 'http://localhost'), '/') . '/payment/finish'),
@@ -57,6 +58,7 @@ return [
         'provider' => 'biteship',
         'api_key' => env('BITESHIP_API_KEY', env('TRACKING_API_KEY')),
         'base_url' => env('BITESHIP_BASE_URL', env('TRACKING_API_URL', 'https://api.biteship.com')),
+        'ca_bundle' => env('BITESHIP_CA_BUNDLE', 'C:/laragon/etc/ssl/cacert.pem'),
         'webhook_header' => env('BITESHIP_WEBHOOK_HEADER', 'X-Biteship-Signature'),
         'webhook_secret' => env('BITESHIP_WEBHOOK_SECRET', env('TRACKING_WEBHOOK_SECRET')),
         'origin' => [

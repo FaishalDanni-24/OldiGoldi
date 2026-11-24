@@ -35,6 +35,15 @@ class PaymentGatewayService
         return $this->config()['secret_key'] ?? $this->config()['secret'] ?? null;
     }
 
+    protected function caBundle(): ?string
+    {
+        $bundle = $this->config()['ca_bundle'] ?? null;
+        if ($bundle && file_exists($bundle)) {
+            return $bundle;
+        }
+        return null;
+    }
+
     public function createTransaction(Order $order, string $provider = 'doku'): ?Payment
     {
         $cfg = $this->config();
@@ -111,13 +120,17 @@ class PaymentGatewayService
         $signature = DokuSignature::sign($clientId, $requestId, $timestamp, $path, $jsonBody, $secretKey);
 
         try {
-            $response = Http::withHeaders([
+            $http = Http::withHeaders([
                 'Client-Id' => $clientId,
                 'Request-Id' => $requestId,
                 'Request-Timestamp' => $timestamp,
                 'Signature' => $signature,
                 'Content-Type' => 'application/json',
-            ])->timeout(15)->post($baseUrl . $path, $body);
+            ])->timeout(15);
+            if ($this->caBundle()) {
+                $http = $http->withOptions(['verify' => $this->caBundle()]);
+            }
+            $response = $http->post($baseUrl . $path, $body);
 
             if ($response->successful()) {
                 $data = $response->json('response', $response->json());
@@ -193,12 +206,16 @@ class PaymentGatewayService
         $signature = DokuSignature::sign($clientId, $requestId, $timestamp, $path, $body, $secretKey);
 
         try {
-            $response = Http::withHeaders([
+            $http = Http::withHeaders([
                 'Client-Id' => $clientId,
                 'Request-Id' => $requestId,
                 'Request-Timestamp' => $timestamp,
                 'Signature' => $signature,
-            ])->timeout(15)->get($this->baseUrl() . $path);
+            ])->timeout(15);
+            if ($this->caBundle()) {
+                $http = $http->withOptions(['verify' => $this->caBundle()]);
+            }
+            $response = $http->get($this->baseUrl() . $path);
 
             if ($response->successful()) {
                 return $response->json();
