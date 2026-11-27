@@ -13,6 +13,14 @@ Route::get('/explore', function () {
     return view('explore');
 });
 
+Route::get('/home', function () {
+    return view('home');
+});
+
+Route::get('/detail', function () {
+    return view('detail');
+});
+
 // Payment gateway return pages (server-side handoff from sandbox)
 Route::get('/payment/return', function () {
     return response('Payment return received. You may close this window.', 200);
